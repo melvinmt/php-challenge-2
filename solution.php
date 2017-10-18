@@ -46,19 +46,14 @@ function dates_with_at_least_n_scores($pdo, $n)
 
     // prepared statements don't seem to work on sqlite? use query
     $sql = "
-        SELECT
-            date
-        FROM
-            scores
-        GROUP BY
-            date
-        HAVING
-            COUNT(date) >= $n
-        ORDER BY
-            date DESC
+        SELECT date
+        FROM scores
+        GROUP BY date
+        HAVING COUNT(date) >= $n
+        ORDER BY date DESC
     ";
 
-    // get the statement, then 
+    // get the statement, then return the results flattened
     $statement = $pdo->query($sql);
     $results = $statement->fetchAll(PDO::FETCH_COLUMN);
     return $results;
@@ -66,7 +61,25 @@ function dates_with_at_least_n_scores($pdo, $n)
 
 function users_with_top_score_on_date($pdo, $date)
 {
-    // YOUR CODE GOES HERE
+    // subquery to disambiguate multiple user's with the same score
+    $subsql = "
+        SELECT MAX(score)
+        FROM scores
+        WHERE date = '$date'
+    ";
+    // main sql query
+    $sql = "
+        SELECT user_id
+        FROM scores
+        WHERE
+            score = ($subsql)
+            AND date = '$date'
+    ";
+    
+    // get the statement, then return the results flattened
+    $statement = $pdo->query($sql);
+    $results = $statement->fetchAll(PDO::FETCH_COLUMN);
+    return $results;
 }
 
 function dates_when_user_was_in_top_n($pdo, $user_id, $n)
