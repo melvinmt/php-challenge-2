@@ -27,7 +27,41 @@ function parse_request($request, $secret)
 
 function dates_with_at_least_n_scores($pdo, $n)
 {
-    // YOUR CODE GOES HERE
+    // Prepare SQL statement with query for dates with >n score
+    /*$sql = '
+        SELECT
+            date
+        FROM
+            scores
+        GROUP BY
+            date
+        HAVING
+            COUNT(date) >= ?
+        ORDER BY
+            date DESC
+    ';
+    
+    // execute statement and return results
+    $statement->execute(array($n));*/
+
+    // prepared statements don't seem to work on sqlite? use query
+    $sql = "
+        SELECT
+            date
+        FROM
+            scores
+        GROUP BY
+            date
+        HAVING
+            COUNT(date) >= $n
+        ORDER BY
+            date DESC
+    ";
+
+    // get the statement, then 
+    $statement = $pdo->query($sql);
+    $results = $statement->fetchAll(PDO::FETCH_COLUMN);
+    return $results;
 }
 
 function users_with_top_score_on_date($pdo, $date)
