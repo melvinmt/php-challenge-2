@@ -1,9 +1,28 @@
 <?php
-// YOUR NAME AND EMAIL GO HERE
+// Jeff Mastin
+// jeff@typhip.com
 
 function parse_request($request, $secret)
 {
-    // YOUR CODE GOES HERE
+    // use regex to verify data and pull out signature/payload
+    $request = strtr($request, '-_', '+/');
+    $pattern = '/^([\w\d+\/=]+)\.([\w\d+\/=]+)$/';
+    $matches = array();
+    if(!preg_match($pattern, $request, $matches)) {
+        return false;
+    }
+
+    // decode signature and payload
+    $signature = base64_decode($matches[1]);
+    $payload = base64_decode($matches[2]);
+
+    // check signature
+    if($signature != hash_hmac('sha256', $payload, $secret)) {
+        return false;
+    }
+
+    // all check's pass and key matches, return payload
+    return json_decode($payload, true);
 }
 
 function dates_with_at_least_n_scores($pdo, $n)
