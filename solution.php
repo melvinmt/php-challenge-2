@@ -1,9 +1,22 @@
 <?php
 // YOUR NAME AND EMAIL GO HERE
+// Jonathan Hao - jhao19@gmail.com
 
 function parse_request($request, $secret)
 {
-    // YOUR CODE GOES HERE
+    list($signatureHash, $payloadHash) = explode('.',$request);
+
+    $hashedSignatureFromRequest = base64_decode($signatureHash);
+    $payloadDecoded = base64_decode($payloadHash);
+    $payload = json_decode($payloadDecoded, true);
+
+    $realHashedSignature = hash_hmac('sha256', $payloadDecoded, $secret);
+
+    if ($hashedSignatureFromRequest == $realHashedSignature) {
+        return $payload;
+    } else {
+        return false;
+    }
 }
 
 function dates_with_at_least_n_scores($pdo, $n)
