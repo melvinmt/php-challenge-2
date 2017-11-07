@@ -64,5 +64,61 @@ function users_with_top_score_on_date($pdo, $date)
 
 function dates_when_user_was_in_top_n($pdo, $user_id, $n)
 {
-    // YOUR CODE GOES HERE
+    $sql = "
+    SELECT `date`, `user_id`, `score`
+    FROM scores s
+    ORDER BY `score` DESC
+    ";
+
+    $query = $pdo->prepare($sql);
+    $query->execute();
+
+    $results = $query->fetchAll(PDO::FETCH_GROUP|PDO::FETCH_ASSOC);
+
+    $dates = array();
+
+    foreach ($results as $date => $userInfos) {
+        $topN = getTopNUsers($userInfos, $n);
+
+        if (in_array($user_id, $topN)) {
+            $dates[] = $date;
+        }
+    }
+    sort($dates);
+
+    return array_reverse($dates);
+}
+
+function getTopNUsers($userInfos, $n) {
+    $users = array();
+
+    // get list of unique scores (should already be sorted from high to low)
+    $scores = array_unique(
+        array_map(
+            function($userInfo) {
+                return $userInfo['score'];
+            },
+            $userInfos
+        )
+    );
+
+    // keep getting users by descending score, as long as number of users found is < n
+    foreach ($scores as $score) {
+        if (count($users) >= $n) {
+            break;
+        }
+
+        $usersWithScore = array_filter(
+            $userInfos,
+            function($userInfo) use ($score) {
+                return ($userInfo['score'] == $score);
+            }
+        );
+
+        foreach ($usersWithScore as $userWithScore) {
+            $users[] = $userWithScore['user_id'];
+        }
+    }
+
+    return $users;
 }
