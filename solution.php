@@ -40,7 +40,26 @@ function dates_with_at_least_n_scores($pdo, $n)
 
 function users_with_top_score_on_date($pdo, $date)
 {
-    // YOUR CODE GOES HERE
+    $subsql = "
+    SELECT max(score)
+    FROM scores s
+    WHERE s.`date` = :date
+    ";
+
+    $sql = "
+    SELECT s.`user_id`
+    FROM scores s 
+    WHERE s.`score` = ($subsql)
+    AND s.`date` = :date
+    ";
+
+    $query = $pdo->prepare($sql);
+    $query->bindParam(':date', $date, PDO::PARAM_STR);
+    $query->execute();
+
+    $results = $query->fetchAll(PDO::FETCH_COLUMN, 'user_id');
+
+    return $results;
 }
 
 function dates_when_user_was_in_top_n($pdo, $user_id, $n)
